@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>非遺音樂地理誌 MVP</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map { height: 100vh; width: 100%; margin: 0; padding: 0; }
+    /* 【美學加分】替換為明體字體 */
+    .popup-content { text-align: center; font-family: "宋體", "SimSun", "明體", "PMingLiU", serif; }
+    .popup-content h3 { margin: 0 0 8px 0; color: #8b4513; font-size: 18px; }
+    .popup-content p { margin: 0 0 12px 0; font-size: 14px; color: #555; line-height: 1.5; }
+    audio { width: 220px; outline: none; }
+    /* 自訂彈出視窗樣式 */
+    .leaflet-popup-content-wrapper {
+      background: #fdf6e3;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .leaflet-popup-tip {
+      background: #fdf6e3;
+    }
+  </style>
+</head>
+<body style="margin: 0;">
+
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([23.5, 110], 5);
+
+    /* 使用標準 OpenStreetMap 底圖（作業預設，最穩定） */
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 音樂地理資料庫
+    const musicData = [
+      {
+        id: "macau-01",
+        title: "澳門鹹水歌",
+        description: "水上人家的傳統漁歌，反映珠江三角洲的曲調語法。",
+        lat: 22.1987,
+        lng: 113.5439,
+        audioUrl: "./assets/xianshui.mp3" 
+      },
+      {
+        id: "taiwan-01",
+        title: "台灣客家山歌",
+        description: "反映丘陵地形與客家勞動生活的即興歌唱。",
+        lat: 24.5815,
+        lng: 121.0026,
+        audioUrl: "./assets/hakka.mp3" 
+      },
+      {
+        id: "shaanbei-01",
+        title: "陝北民歌",
+        description: "黃土高原上的高亢歌聲，代表西北人民的淳樸與豪邁。",
+        lat: 36.5853,
+        lng: 109.4898,
+        audioUrl: "./assets/shaanbei.mp3"
+      },
+      {
+        id: "dong-01",
+        title: "侗族大歌",
+        description: "無指揮、無伴奏的多聲部和聲，人與自然和諧的經典見證。",
+        lat: 26.1769,
+        lng: 108.8615,
+        audioUrl: "./assets/dong.mp3"
+      },
+      {
+        id: "nanyin-01",
+        title: "泉州南音",
+        description: "被稱為中國音樂史上的活化石，保留了古代中原音樂的精髓。",
+        lat: 24.8741,
+        lng: 118.6757,
+        audioUrl: "./assets/nanyin.mp3"
+      },
+      {
+        id: "muqam-01",
+        title: "新疆維吾爾木卡姆藝術",
+        description: "融合歌、舞、樂的大型綜合藝術，絲綢之路文化的結晶。",
+        lat: 39.4704,
+        lng: 75.9898,
+        audioUrl: "./assets/muqam.mp3"
+      },
+      {
+        id: "changdiao-01",
+        title: "蒙古族長調民歌",
+        description: "草原上的悠長歌聲，描繪天空、草原與遊牧民族的精神世界。",
+        lat: 40.8426,
+        lng: 111.7492,
+        audioUrl: "./assets/changdiao.mp3"
+      }
+    ];
+
+    musicData.forEach(item => {
+      const popupHTML = `
+        <div class="popup-content">
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+          <audio controls controlsList="nodownload">
+            <source src="${item.audioUrl}">
+            你的瀏覽器不支援音訊播放。
+          </audio>
+        </div>
+      `;
+      L.marker([item.lat, item.lng]).addTo(map).bindPopup(popupHTML);
+    });
+
+    /* 【邏輯加分】單一播放防呆：點擊播放新音樂時，其他正在播放的音樂自動暫停 */
+    document.addEventListener('play', function(e) {
+      const audios = document.getElementsByTagName('audio');
+      for (let i = 0; i < audios.length; i++) {
+        if (audios[i] !== e.target) {
+          audios[i].pause();
+        }
+      }
+    }, true);
+
+    // 關閉彈出視窗時暫停音樂
+    map.on('popupclose', function() {
+      const audios = document.getElementsByTagName('audio');
+      for (let i = 0; i < audios.length; i++) {
+        audios[i].pause();
+      }
+    });
+  </script>
+</body>
+</html>
