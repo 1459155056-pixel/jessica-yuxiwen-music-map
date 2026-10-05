@@ -1,131 +1,301 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <title>非遺音樂地理誌 MVP</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    #map { height: 100vh; width: 100%; margin: 0; padding: 0; }
-    /* 【美學加分】替換為明體字體 */
-    .popup-content { text-align: center; font-family: "宋體", "SimSun", "明體", "PMingLiU", serif; }
-    .popup-content h3 { margin: 0 0 8px 0; color: #8b4513; font-size: 18px; }
-    .popup-content p { margin: 0 0 12px 0; font-size: 14px; color: #555; line-height: 1.5; }
-    audio { width: 220px; outline: none; }
-    /* 自訂彈出視窗樣式 */
-    .leaflet-popup-content-wrapper {
-      background: #fdf6e3;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .leaflet-popup-tip {
-      background: #fdf6e3;
-    }
-  </style>
-</head>
-<body style="margin: 0;">
-
-  <div id="map"></div>
-
-  <script>
-    const map = L.map('map').setView([23.5, 110], 5);
-
-    /* 使用標準 OpenStreetMap 底圖（作業預設，最穩定） */
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // 音樂地理資料庫
-    const musicData = [
-      {
-        id: "macau-01",
-        title: "澳門鹹水歌",
-        description: "水上人家的傳統漁歌，反映珠江三角洲的曲調語法。",
-        lat: 22.1987,
-        lng: 113.5439,
-        audioUrl: "./assets/xianshui.mp3" 
-      },
-      {
-        id: "taiwan-01",
-        title: "台灣客家山歌",
-        description: "反映丘陵地形與客家勞動生活的即興歌唱。",
-        lat: 24.5815,
-        lng: 121.0026,
-        audioUrl: "./assets/hakka.mp3" 
-      },
-      {
-        id: "shaanbei-01",
-        title: "陝北民歌",
-        description: "黃土高原上的高亢歌聲，代表西北人民的淳樸與豪邁。",
-        lat: 36.5853,
-        lng: 109.4898,
-        audioUrl: "./assets/shaanbei.mp3"
-      },
-      {
-        id: "dong-01",
-        title: "侗族大歌",
-        description: "無指揮、無伴奏的多聲部和聲，人與自然和諧的經典見證。",
-        lat: 26.1769,
-        lng: 108.8615,
-        audioUrl: "./assets/dong.mp3"
-      },
-      {
-        id: "nanyin-01",
-        title: "泉州南音",
-        description: "被稱為中國音樂史上的活化石，保留了古代中原音樂的精髓。",
-        lat: 24.8741,
-        lng: 118.6757,
-        audioUrl: "./assets/nanyin.mp3"
-      },
-      {
-        id: "muqam-01",
-        title: "新疆維吾爾木卡姆藝術",
-        description: "融合歌、舞、樂的大型綜合藝術，絲綢之路文化的結晶。",
-        lat: 39.4704,
-        lng: 75.9898,
-        audioUrl: "./assets/muqam.mp3"
-      },
-      {
-        id: "changdiao-01",
-        title: "蒙古族長調民歌",
-        description: "草原上的悠長歌聲，描繪天空、草原與遊牧民族的精神世界。",
-        lat: 40.8426,
-        lng: 111.7492,
-        audioUrl: "./assets/changdiao.mp3"
-      }
-    ];
-
-    musicData.forEach(item => {
-      const popupHTML = `
-        <div class="popup-content">
-          <h3>${item.title}</h3>
-          <p>${item.description}</p>
-          <audio controls controlsList="nodownload">
-            <source src="${item.audioUrl}">
-            你的瀏覽器不支援音訊播放。
-          </audio>
-        </div>
-      `;
-      L.marker([item.lat, item.lng]).addTo(map).bindPopup(popupHTML);
-    });
-
-    /* 【邏輯加分】單一播放防呆：點擊播放新音樂時，其他正在播放的音樂自動暫停 */
-    document.addEventListener('play', function(e) {
-      const audios = document.getElementsByTagName('audio');
-      for (let i = 0; i < audios.length; i++) {
-        if (audios[i] !== e.target) {
-          audios[i].pause();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非遺音樂地理誌</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body {
+            font-family: "MingLiU", "SimSun", "細明體", serif;
         }
-      }
-    }, true);
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
 
-    // 關閉彈出視窗時暫停音樂
-    map.on('popupclose', function() {
-      const audios = document.getElementsByTagName('audio');
-      for (let i = 0; i < audios.length; i++) {
-        audios[i].pause();
-      }
-    });
-  </script>
+        /* 彈窗美化 */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            background: #f8f4ec;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        .leaflet-popup-content {
+            margin: 0;
+            font-family: "MingLiU", "SimSun", "細明體", serif;
+            width: 280px;
+        }
+        .popup-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+            display: block;
+        }
+        .popup-text {
+            padding: 14px 18px 18px;
+        }
+        .popup-text h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #5a3e2b;
+            border-bottom: 1px solid #d4c8b6;
+            padding-bottom: 6px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .popup-text p {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #4a433b;
+            text-align: center;
+        }
+        .leaflet-popup-tip {
+            background: #f8f4ec;
+        }
+
+        /* 底部全局自訂播放欄 */
+        .player-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            background: #f8f4ec;
+            padding: 16px 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+            z-index: 1000;
+            font-family: "MingLiU", "SimSun", "細明體", serif;
+            display: none;
+            border: 1px solid #d4c8b6;
+        }
+        .player-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .now-playing {
+            font-size: 16px;
+            color: #5a3e2b;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .time-display {
+            font-size: 13px;
+            color: #7a6a58;
+        }
+        /* 自訂進度條 */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #e0d5c3;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #8b5a2b;
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #8b5a2b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .play-btn:hover {
+            background: #6d4520;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .volume-slider {
+            width: 80px;
+            accent-color: #8b5a2b;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- 底部全局自訂播放欄 -->
+    <div class="player-bar" id="playerBar">
+        <div class="player-top">
+            <div class="now-playing" id="nowPlaying">正在播放：</div>
+            <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
+        </div>
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="controls">
+            <button class="play-btn" id="playBtn">▶</button>
+            <div class="volume-control">
+                <span style="color:#7a6a58; font-size:13px;">音量</span>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.8">
+            </div>
+        </div>
+    </div>
+
+    <audio id="globalAudio" style="display:none;">
+
+    <script>
+        // 初始化地圖
+        const map = L.map('map').setView([35, 105], 4.2);
+
+        // 載入OpenStreetMap底圖
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 音樂資料庫（路徑已對應真實文件名）
+        const musicData = [
+            {
+                name: "澳門鹹水歌",
+                location: [22.1987, 113.5439],
+                desc: "澳門水上人家的民歌，以粵語演唱，見證漁民文化。",
+                audio: "assets/xianshui.mp3",
+                image: "assets/xianshui_popup.jpg.png"
+            },
+            {
+                name: "台灣客家山歌",
+                location: [24.9657, 121.2878],
+                desc: "台灣客家傳統民歌，題材貼近生活，唱腔自由明快。",
+                audio: "assets/hakka.mp3",
+                image: "assets/hakka_popup.jpg.png"
+            },
+            {
+                name: "陝北民歌",
+                location: [36.5853, 109.4898],
+                desc: "西北黃土高原的歌聲，風格高亢遼闊、質樸奔放。",
+                audio: "assets/shaanbei.mp3",
+                image: "assets/shaanbei_popup.jpg.png"
+            },
+            {
+                name: "侗族大歌",
+                location: [26.2378, 109.0703],
+                desc: "侗族多聲部無伴奏合唱，模仿蟲鳴鳥叫，自然和諧。",
+                audio: "assets/dong.mp3",
+                image: "assets/dong_popup.jpg.png"
+            },
+            {
+                name: "泉州南音",
+                location: [24.8741, 118.6757],
+                desc: "被稱為中國音樂史上的活化石，保留古代中原音樂精髓。",
+                audio: "assets/nanyin.mp3",
+                image: "assets/nanyin_popup.jpg.png"
+            },
+            {
+                name: "新疆維吾爾木卡姆",
+                location: [39.4704, 75.9898],
+                desc: "維吾爾族大型古典音樂套曲，歌樂舞三位一體。",
+                audio: "assets/muqam.mp3",
+                image: "assets/muqam_popup.jpg.png"
+            },
+            {
+                name: "蒙古族長調民歌",
+                location: [40.8424, 111.7519],
+                desc: "草原游牧文化的結晶，曲調悠長遼闊、氣息寬廣。",
+                audio: "assets/changdiao.mp3",
+                image: "assets/changdiao_popup.jpg.png"
+            }
+        ];
+
+        // 取得播放器元素
+        const audio = document.getElementById('globalAudio');
+        const playerBar = document.getElementById('playerBar');
+        const nowPlaying = document.getElementById('nowPlaying');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        audio.volume = 0.8;
+
+        // 格式化時間
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // 更新進度條
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = percent + '%';
+            timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
+        });
+
+        // 點擊進度條跳轉
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = percent * audio.duration;
+        });
+
+        // 播放暫停按鈕
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '❚❚';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        });
+
+        // 音量控制
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+        });
+
+        // 加入標記點
+        musicData.forEach(item => {
+            const marker = L.marker(item.location).addTo(map);
+            
+            const popupContent = `
+                <img class="popup-img" src="${item.image}" alt="${item.name}">
+                <div class="popup-text">
+                    <h3>${item.name}</h3>
+                    <p>${item.desc}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+
+            // 點擊標記切換播放
+            marker.on('click', () => {
+                audio.src = item.audio;
+                nowPlaying.textContent = `正在播放：${item.name}`;
+                playerBar.style.display = 'block';
+                audio.play();
+                playBtn.textContent = '❚❚';
+            });
+        });
+    </script>
 </body>
 </html>
